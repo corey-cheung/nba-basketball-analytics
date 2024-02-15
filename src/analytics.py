@@ -19,6 +19,9 @@ def query_duckdb(query: str) -> list[tuple]:
 
 
 def title_and_overview():
+    """
+    Set up title and overview for the data app.
+    """
     ball_dont_lie_url = "https://www.balldontlie.io/#introduction"
     st.title("NBA Basketball Analytics")
     st.write("Using data from the [Ball Don't Lie API](%s)" % ball_dont_lie_url)
@@ -49,6 +52,10 @@ def winning_color_df(data: pd.DataFrame, team: str = None) -> pd.DataFrame:
 
 
 def most_recent_games():
+    """
+    Get the most recent games from DuckDB and present as a table in the data app. Format
+    the table so that winning teams are green and losing teams are red.
+    """
     latest_games = query_duckdb(
         """
         SELECT
@@ -75,6 +82,12 @@ def most_recent_games():
     st.table(latest_games_styled)
 
 def team_info():
+    """
+    Get the last 10 games from a particular team that the user can select through a
+    drop down. Display the team's record for the last 10 games and show the game info as
+    a table. Format the table to highlight the team selected - green if they won, red if
+    they lost.
+    """
 
     st.header("Last 10 games by team", divider="red")
 
