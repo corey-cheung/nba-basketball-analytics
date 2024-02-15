@@ -24,7 +24,7 @@ def title_and_overview():
     st.write("Using data from the [Ball Don't Lie API](%s)" % ball_dont_lie_url)
 
 
-def winning_color_df(data: pd.DataFrame) -> pd.DataFrame:
+def winning_color_df(data: pd.DataFrame, team: str = None) -> pd.DataFrame:
     """
     Assigns styling information to a DataFrame based on the 'home_team_win' column.
     Return a DataFrame of the same shape, with the styling info corresponding to the
@@ -33,13 +33,19 @@ def winning_color_df(data: pd.DataFrame) -> pd.DataFrame:
     Parameters:
         data: The DataFrame to be styled, containing game data.
     """
-    df = pd.DataFrame('', index=data.index, columns=data.columns)
-    conditions = data['home_team_win']
-    df['home_team'] = conditions.apply(lambda x: "background-color:green" if x else "background-color:red")
-    df['home_team_score'] = conditions.apply(lambda x: "color:green" if x else "color:red")
-    df['visitor_team'] = conditions.apply(lambda x: "background-color:green" if not x else "background-color:red")
-    df['visitor_team_score'] = conditions.apply(lambda x: "color:green" if not x else "color:red")
-    return df
+    style_df = pd.DataFrame('', index=data.index, columns=data.columns)
+    conditions = data["home_team_win"]
+    style_df['home_team'] = conditions.apply(lambda x: "background-color:green" if x else "background-color:red")
+    style_df['home_team_score'] = conditions.apply(lambda x: "color:green" if x else "color:red")
+    style_df['visitor_team'] = conditions.apply(lambda x: "background-color:green" if not x else "background-color:red")
+    style_df['visitor_team_score'] = conditions.apply(lambda x: "color:green" if not x else "color:red")
+
+    if team:
+        home_team_selected = data["home_team"].apply(lambda x: x == team)
+        visitor_team_selected = data["visitor_team"].apply(lambda x: x == team)
+        style_df['home_team'] = style_df.apply(lambda x: x['home_team'] if home_team_selected.iloc[x.name] else None, axis=1)
+        style_df['visitor_team'] = style_df.apply(lambda x: x['visitor_team'] if visitor_team_selected.iloc[x.name] else None, axis=1)
+    return style_df
 
 
 def most_recent_games():
@@ -64,14 +70,13 @@ def most_recent_games():
         )
 
     latest_games_styled = latest_games.style.apply(winning_color_df, axis=None)  # apply to both index and columns axis
-    df = winning_color_df(latest_games)
     st.header("Most recent games", divider="red")
     st.write("Dates are in US timezones and data only gets updated at 6pm AEST, cause it ain't that serious!")
     st.table(latest_games_styled)
 
 def team_info():
 
-    st.header("Last 10 games", divider="red")
+    st.header("Last 10 games by team", divider="red")
 
     teams = query_duckdb(
         """
@@ -123,7 +128,7 @@ def team_info():
     games_won = int(games_won["games_won"][0])
 
     st.write(f"{selected_team} has won {games_won} out of the last 10 games.")
-    lastest_team_games_styled = lastest_team_games.style.apply(winning_color_df, axis=None)
+    lastest_team_games_styled = lastest_team_games.style.apply(winning_color_df, team=selected_team, axis=None)
     st.table(lastest_team_games_styled)
 
 if __name__ == "__main__":
