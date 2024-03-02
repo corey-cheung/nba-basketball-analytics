@@ -2,20 +2,8 @@
 
 import pandas as pd
 import streamlit as st
-import duckdb
 import os
 
-
-def query_duckdb(query: str) -> list[tuple]:
-    """
-    Query duck db and return the result in list of tuples.
-
-    Parameters:
-        query: The select query to run against postgres
-    """
-    duckdb_path = os.environ.get("AIRFLOW_VAR_DUCKDB_PATH")
-    with duckdb.connect(duckdb_path) as conn:
-        return conn.execute(query).df()
 
 
 def title_and_overview():
@@ -70,26 +58,6 @@ def most_recent_games():
     Get the most recent games from DuckDB and present as a table in the data app. Format
     the table so that winning teams are green and losing teams are red.
     """
-    latest_games = query_duckdb(
-        """
-        SELECT
-            (game_date::DATE)::TEXT AS game_date,
-            home_team,
-            home_team_score,
-            visitor_team_score,
-            visitor_team,
-            season,
-            status,
-            home_team_win
-        FROM main_mart.fct_game
-        WHERE game_date = (
-            SELECT MAX(game_date)
-            FROM main_mart.fct_game
-            WHERE status = 'Final'
-        );
-        """
-    )
-    # latest_games.to_csv('src/datasets/latest_games.csv', index=False)
 
     latest_games = pd.read_csv('src/datasets/latest_games.csv')
     latest_games_styled = latest_games.style.apply(
@@ -103,80 +71,7 @@ def most_recent_games():
     st.table(latest_games_styled)
 
 
-def team_info():
-    """
-    Get the last 10 games from a particular team that the user can select through a
-    drop down. Display the team's record for the last 10 games and show the game info as
-    a table. Format the table to highlight the team selected - green if they won, red if
-    they lost.
-    """
-
-    st.header("Last 10 games by team", divider="grey")
-
-    teams = query_duckdb(
-        """
-        SELECT
-            team_name_abbreviation AS team
-        FROM main_mart.dim_team
-        WHERE city <> ''
-        ;
-        """
-    )
-    selected_team = st.selectbox("Team", teams)
-
-    lastest_team_games = query_duckdb(
-        f"""
-        SELECT
-            (game_date::DATE)::TEXT AS game_date,
-            home_team,
-            home_team_score,
-            visitor_team,
-            visitor_team_score,
-            home_team_win
-        FROM main_mart.fct_game
-        WHERE '{selected_team}' = home_team OR '{selected_team}' = visitor_team
-        ORDER BY game_date DESC
-        LIMIT 10
-        ;
-        """
-    )
-
-    games_won = query_duckdb(
-        f"""
-        WITH last_10 AS (
-            SELECT
-                (game_date::DATE)::TEXT AS game_date,
-                home_team,
-                home_team_score,
-                visitor_team,
-                visitor_team_score,
-                home_team_win
-            FROM main_mart.fct_game
-            WHERE '{selected_team}' = home_team OR '{selected_team}' = visitor_team
-            ORDER BY game_date DESC
-            LIMIT 10
-        )
-        SELECT
-            SUM(
-                CASE WHEN (
-                    '{selected_team}' = CASE WHEN home_team_win THEN home_team
-                    ELSE visitor_team END
-                    )
-                    THEN 1 ELSE 0 END
-                ) AS games_won
-        from last_10
-        """
-    )
-    games_won = int(games_won["games_won"][0])
-
-    st.write(f"{selected_team} has won {games_won} out of the last 10 games.")
-    lastest_team_games_styled = lastest_team_games.style.apply(
-        winning_color_df, team=selected_team, axis=None
-    )
-    st.table(lastest_team_games_styled)
-
 
 if __name__ == "__main__":
     title_and_overview()
     most_recent_games()
-    # team_info()
