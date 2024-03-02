@@ -6,7 +6,6 @@ import duckdb
 import os
 
 
-
 def query_duckdb(query: str) -> list[tuple]:
     """
     Query duck db and return the result in list of tuples.
@@ -71,17 +70,16 @@ def most_recent_games():
     the table so that winning teams are green and losing teams are red.
     """
 
-    latest_games = pd.read_csv('src/datasets/latest_games.csv')
+    latest_games = pd.read_csv("src/datasets/latest_games.csv")
     latest_games_styled = latest_games.style.apply(
         winning_color_df, axis=None
     )  # apply to both index and columns axis
     st.header("Most recent games", divider="grey")
     st.write(
-        "Dates are in US timezones and data only gets updated at 6pm AEST, cause it" +
-        "ain't that serious!"
+        "Dates are in US timezones and data only gets updated at 6pm AEST, cause it"
+        + " ain't that serious!"
     )
     st.table(latest_games_styled)
-
 
 
 if __name__ == "__main__":
