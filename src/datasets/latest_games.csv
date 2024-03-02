@@ -1,0 +1,10 @@
+game_date,home_team,home_team_score,visitor_team_score,visitor_team,season,status,home_team_win
+2024-03-01,MIN,120,120,SAC,2023,Final,False
+2024-03-01,TOR,105,115,GSW,2023,Final,False
+2024-03-01,NOP,129,102,IND,2023,Final,True
+2024-03-01,DET,100,109,CLE,2023,Final,False
+2024-03-01,MEM,84,113,POR,2023,Final,False
+2024-03-01,CHI,94,109,MIL,2023,Final,False
+2024-03-01,LAC,140,115,WAS,2023,Final,True
+2024-03-01,BOS,133,108,DAL,2023,Final,True
+2024-03-01,PHI,121,114,CHA,2023,Final,True

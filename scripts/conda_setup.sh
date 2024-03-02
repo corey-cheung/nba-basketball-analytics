@@ -20,7 +20,15 @@ conda install \
 	python-duckdb \
 	pandas \
     numpy \
-    matplotlib \
+    matplotlib
+conda install \
+	--channel conda-forge \
+	--channel defaults \
+	--quiet \
+	--yes \
+    black \
+    pylint \
+	isort
 
 
 echo "Finished, now spin up your new conda environment with 'conda activate nba-basketball-analytics'"
