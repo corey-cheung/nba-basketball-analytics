@@ -7,6 +7,17 @@ import os
 
 
 
+def query_duckdb(query: str) -> list[tuple]:
+    """
+    Query duck db and return the result in list of tuples.
+    Parameters:
+        query: The select query to run against postgres
+    """
+    duckdb_path = os.environ.get("AIRFLOW_VAR_DUCKDB_PATH")
+    with duckdb.connect(duckdb_path) as conn:
+        return conn.execute(query).df()
+
+
 def title_and_overview():
     """
     Set up title and overview for the data app.
