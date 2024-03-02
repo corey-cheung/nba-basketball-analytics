@@ -2,6 +2,7 @@
 
 import pandas as pd
 import streamlit as st
+import duckdb
 import os
 
 
