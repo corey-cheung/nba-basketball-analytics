@@ -7,6 +7,8 @@ WITH last_10 AS (
         last_10_games.home_team_score,
         last_10_games.visitor_team,
         last_10_games.visitor_team_score,
+        last_10_games.season,
+        last_10_games.status,
         last_10_games.home_team_win
     FROM main_mart.dim_team AS team
     JOIN ( -- correlated subquery to loop through all teams and get latest 10
@@ -16,6 +18,8 @@ WITH last_10 AS (
             home_team_score,
             visitor_team,
             visitor_team_score,
+            season,
+            status,
             home_team_win
         FROM main_mart.fct_game AS game
         WHERE team.team_name_abbreviation = game.home_team OR team.team_name_abbreviation = game.visitor_team
