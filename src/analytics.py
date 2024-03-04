@@ -115,7 +115,28 @@ def last_10_games():
     st.table(last_10_by_team_styled)
 
 
+def player_averages():
+    st.header("Player Stats", divider="grey")
+    df_player_averages = pd.read_csv("./src/datasets/season_stats.csv")
+    players = duckdb.sql(
+        """
+        SELECT DISTINCT first_name || ' ' || last_name AS player_name
+        FROM df_player_averages
+        WHERE player_name IS NOT NULL
+        ORDER BY player_name;
+        """
+    ).to_df()
+    players = pd.concat(
+        [ # put LeGoat first as drop down example
+            players[players["player_name"] == "LeBron James"],
+            players[players["player_name"] != "LeBron James"],
+        ]
+    ).reset_index(drop=True)
+    selected_player = st.selectbox("Player", players, index=0)
+
+
 if __name__ == "__main__":
     title_and_overview()
     most_recent_games()
     last_10_games()
+    player_averages()
