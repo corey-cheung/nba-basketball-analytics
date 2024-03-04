@@ -117,6 +117,7 @@ def last_10_games():
 
 def player_averages():
     st.header("Player Stats", divider="grey")
+    st.write("Pick your favourite player below!")
     df_player_averages = pd.read_csv("./src/datasets/season_stats.csv")
     players = duckdb.sql(
         """
@@ -133,6 +134,10 @@ def player_averages():
         ]
     ).reset_index(drop=True)
     selected_player = st.selectbox("Player", players, index=0)
+    if selected_player == "LeBron James":
+        st.image("./assets/lebron.png", caption='LeBron James')
+    else:
+        st.image("./assets/not_lebron.jpeg", caption='NOT LeBron James')
 
 
 if __name__ == "__main__":
