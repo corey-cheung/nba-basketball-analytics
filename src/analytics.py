@@ -232,7 +232,10 @@ def compare_players(players: pd.DataFrame) -> None:
         player1 = st.selectbox("Player 1", players)
         player1_id = player1.split("ID: ")[-1]
     with right:
-        player2 = st.selectbox("Player 2", players, index=1)
+        michael_jordan = int(
+            players[players["player_name"] == "Michael Jordan ID: 2931"].index[0]
+        )
+        player2 = st.selectbox("Player 2", players, index=michael_jordan)
         player2_id = player2.split("ID: ")[-1]
 
     career_comparison = duckdb.sql(
@@ -282,6 +285,7 @@ def compare_players(players: pd.DataFrame) -> None:
         color=["#add2e4", "#f678a7"],
     )
 
+
 def main():
     title_and_overview()
     most_recent_games()
@@ -289,6 +293,7 @@ def main():
     selected_player_id, players = select_player()
     player_stats(selected_player_id)
     compare_players(players)
+
 
 if __name__ == "__main__":
     main()
