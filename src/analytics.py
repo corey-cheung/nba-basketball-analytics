@@ -5,7 +5,7 @@ import streamlit as st
 import duckdb
 
 
-def title_and_overview():
+def title_and_overview() -> None:
     """
     Set up title and overview for the data app.
     """
@@ -59,7 +59,7 @@ def winning_color_df(data: pd.DataFrame, team: str = None) -> pd.DataFrame:
     return style_df
 
 
-def most_recent_games():
+def most_recent_games() -> None:
     """
     Get the most recent games and present as a table in the data app. Format the table
     so that winning teams are green and losing teams are red.
@@ -74,7 +74,7 @@ def most_recent_games():
     st.dataframe(latest_games_styled, hide_index=True)
 
 
-def last_10_games():
+def last_10_games() -> None:
     """
     Get the last 10 games for a given team that the user can select through a drop down
     button. Present as a table highlight the winning team, and text describing their
@@ -115,12 +115,15 @@ def last_10_games():
     st.dataframe(last_10_by_team_styled, hide_index=True)
 
 
-def player_averages():
+def select_player() -> str:
+    """
+    Create a drop down to select a player as well as an image for the selected player.
+    """
     st.header("Player Stats", divider="grey")
     st.write(
         "Pick your favourite player below! A highly advanced artificial neural network "
         + "will generate a picture using just their name!"
-        )
+    )
     df_player_averages = pd.read_csv("./src/datasets/season_stats.csv")
     players = duckdb.sql(
         """
@@ -133,19 +136,68 @@ def player_averages():
         """
     ).to_df()
     players = pd.concat(
-        [ # put LeGoat first as drop down example
+        [  # put LeGoat first as drop down example
             players[players["player_name"] == "LeBron James ID: 237"],
             players[players["player_name"] != "LeBron James ID: 237"],
         ]
     ).reset_index(drop=True)
     selected_player = st.selectbox("Player", players, index=0)
     selected_player_id = selected_player.split("ID: ")[-1]
-    print(selected_player_id)
     if selected_player == "LeBron James ID: 237":
-        st.image("./assets/lebron.png", caption='LeBron James')
+        st.image("./assets/lebron.png", caption="LeBron James")
     else:
-        st.image("./assets/not_lebron.jpeg", caption='NOT LeBron James')
-    stats = duckdb.sql(
+        st.image("./assets/not_lebron.jpeg", caption="NOT LeBron James")
+
+    return selected_player_id
+
+
+def player_stats(selected_player_id):
+    """
+    Show the chosen player's career statistics.
+    """
+    df_player_averages = pd.read_csv("./src/datasets/season_stats.csv")
+    career_totals = duckdb.sql(
+        f"""
+        SELECT
+            season_number,
+            career_pts,
+            career_reb,
+            career_ast,
+            career_blk,
+            career_stl
+        FROM df_player_averages
+        WHERE player_id = {selected_player_id}
+        ORDER BY season_number
+        """
+    ).to_df()
+    left, middle, right = st.columns(3)
+    with left:
+        choose_pts = st.checkbox("Points", True)
+    with middle:
+        choose_reb = st.checkbox("Rebounds")
+    with right:
+        choose_ast = st.checkbox("Assists")
+    left, middle, nothing = st.columns(3)
+    with left:
+        choose_blk = st.checkbox("Blocks")
+    with middle:
+        choose_stl = st.checkbox("Steals")
+
+    df = pd.DataFrame()
+    df["season_number"] = career_totals["season_number"]
+    if choose_pts:
+        df["career_pts"] = career_totals["career_pts"]
+    if choose_reb:
+        df["career_reb"] = career_totals["career_reb"]
+    if choose_ast:
+        df["career_ast"] = career_totals["career_ast"]
+    if choose_blk:
+        df["career_blk"] = career_totals["career_blk"]
+    if choose_stl:
+        df["career_stl"] = career_totals["career_stl"]
+    st.area_chart(df, x="season_number")
+
+    season_averages = duckdb.sql(
         f"""
         SELECT
             first_name || ' ' || last_name AS player_name,
@@ -165,12 +217,12 @@ def player_averages():
         ORDER BY season;
         """
     ).to_df()
-    st.dataframe(stats, hide_index=True)
-
+    st.dataframe(season_averages, hide_index=True)
 
 
 if __name__ == "__main__":
     title_and_overview()
     most_recent_games()
     last_10_games()
-    player_averages()
+    selected_player_id = select_player()
+    player_stats(selected_player_id)
