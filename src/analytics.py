@@ -71,7 +71,7 @@ def most_recent_games():
     )  # apply to both index and columns axis
     st.header("Most recent games", divider="grey")
     st.write("Dates are in US timezones")
-    st.table(latest_games_styled)
+    st.dataframe(latest_games_styled, hide_index=True)
 
 
 def last_10_games():
@@ -112,16 +112,21 @@ def last_10_games():
         winning_color_df, team=selected_team, axis=None
     )
     st.write(f"{selected_team} has won {wins} out of the last 10 games.")
-    st.table(last_10_by_team_styled)
+    st.dataframe(last_10_by_team_styled, hide_index=True)
 
 
 def player_averages():
     st.header("Player Stats", divider="grey")
-    st.write("Pick your favourite player below!")
+    st.write(
+        "Pick your favourite player below! A highly advanced artificial neural network "
+        + "will generate a picture using just their name!"
+        )
     df_player_averages = pd.read_csv("./src/datasets/season_stats.csv")
     players = duckdb.sql(
         """
-        SELECT DISTINCT first_name || ' ' || last_name AS player_name
+        SELECT
+            DISTINCT
+            first_name || ' ' || last_name || ' ID: ' || player_id::INT AS player_name
         FROM df_player_averages
         WHERE player_name IS NOT NULL
         ORDER BY player_name;
@@ -129,15 +134,39 @@ def player_averages():
     ).to_df()
     players = pd.concat(
         [ # put LeGoat first as drop down example
-            players[players["player_name"] == "LeBron James"],
-            players[players["player_name"] != "LeBron James"],
+            players[players["player_name"] == "LeBron James ID: 237"],
+            players[players["player_name"] != "LeBron James ID: 237"],
         ]
     ).reset_index(drop=True)
     selected_player = st.selectbox("Player", players, index=0)
-    if selected_player == "LeBron James":
+    selected_player_id = selected_player.split("ID: ")[-1]
+    print(selected_player_id)
+    if selected_player == "LeBron James ID: 237":
         st.image("./assets/lebron.png", caption='LeBron James')
     else:
         st.image("./assets/not_lebron.jpeg", caption='NOT LeBron James')
+    stats = duckdb.sql(
+        f"""
+        SELECT
+            first_name || ' ' || last_name AS player_name,
+            season::TEXT AS season,
+            total_games,
+            avg_pts,
+            avg_reb,
+            avg_ast,
+            avg_blk,
+            avg_stl,
+            avg_turnover,
+            avg_fg_pct,
+            avg_fg3_pct,
+            avg_ft_pct,
+        FROM df_player_averages
+        WHERE player_id = {selected_player_id}
+        ORDER BY season;
+        """
+    ).to_df()
+    st.dataframe(stats, hide_index=True)
+
 
 
 if __name__ == "__main__":
