@@ -70,7 +70,7 @@ def most_recent_games() -> None:
         winning_color_df, axis=None
     )  # apply to both index and columns axis
     st.header("Most recent games", divider="grey")
-    st.write("Dates are in US timezones")
+    st.write("Dates are in US timezones.")
     st.dataframe(latest_games_styled, hide_index=True)
 
 
@@ -115,7 +115,7 @@ def last_10_games() -> None:
     st.dataframe(last_10_by_team_styled, hide_index=True)
 
 
-def select_player() -> str:
+def select_player() -> tuple[str, pd.DataFrame]:
     """
     Create a drop down to select a player as well as an image for the selected player.
     """
@@ -148,10 +148,10 @@ def select_player() -> str:
     else:
         st.image("./assets/not_lebron.jpeg", caption="NOT LeBron James")
 
-    return selected_player_id
+    return selected_player_id, players
 
 
-def player_stats(selected_player_id):
+def player_stats(selected_player_id) -> None:
     """
     Show the chosen player's career statistics.
     """
@@ -220,9 +220,75 @@ def player_stats(selected_player_id):
     st.dataframe(season_averages, hide_index=True)
 
 
-if __name__ == "__main__":
+def compare_players(players: pd.DataFrame) -> None:
+    """
+    Compare the career stats of two players.
+    """
+    df_player_averages = pd.read_csv("./src/datasets/season_stats.csv")
+    st.header("Compare Players", divider="grey")
+    st.write("Compare the career stats of two players.")
+    left, right = st.columns(2)
+    with left:
+        player1 = st.selectbox("Player 1", players)
+        player1_id = player1.split("ID: ")[-1]
+    with right:
+        player2 = st.selectbox("Player 2", players, index=1)
+        player2_id = player2.split("ID: ")[-1]
+
+    career_comparison = duckdb.sql(
+        f"""
+        WITH player1 AS (
+            SELECT
+                season_number,
+                career_pts AS player1_pts,
+                career_reb AS player1_reb,
+                career_ast AS player1_ast,
+                career_blk AS player1_blk,
+                career_stl AS player1_stl
+            FROM df_player_averages
+            WHERE player_id = {player1_id}
+        ),
+        player2 AS (
+            SELECT
+                season_number,
+                career_pts AS player2_pts,
+                career_reb AS player2_reb,
+                career_ast AS player2_ast,
+                career_blk AS player2_blk,
+                career_stl AS player2_stl
+            FROM df_player_averages
+            WHERE player_id = {player2_id}
+        )
+        SELECT *
+        FROM player1
+        FULL JOIN player2 USING(season_number)
+        ORDER BY season_number
+        """
+    ).to_df()
+    compare_stat = st.selectbox(
+        "Game statistic", ["Points", "Rebounds", "Assists", "Blocks", "Steals"]
+    )
+    mapping = {
+        "Points": ["player1_pts", "player2_pts"],
+        "Rebounds": ["player1_reb", "player2_reb"],
+        "Assists": ["player1_ast", "player2_ast"],
+        "Blocks": ["player1_blk", "player2_blk"],
+        "Steals": ["player1_stl", "player2_stl"],
+    }
+    st.line_chart(
+        career_comparison,
+        x="season_number",
+        y=mapping[compare_stat],
+        color=["#add2e4", "#f678a7"],
+    )
+
+def main():
     title_and_overview()
     most_recent_games()
     last_10_games()
-    selected_player_id = select_player()
+    selected_player_id, players = select_player()
     player_stats(selected_player_id)
+    compare_players(players)
+
+if __name__ == "__main__":
+    main()
