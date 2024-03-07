@@ -13,7 +13,7 @@ def title_and_overview() -> None:
     st.write(
         "Using data from the [Ball Don't Lie API](%s), for now data is uploaded daily"
         % "https://www.balldontlie.io/#introduction"
-        + " at 6pm AEST."
+        + " at 8am AEST."
     )
     st.write(
         "For the full data pipelines see the nba-basketball repos in on my"
