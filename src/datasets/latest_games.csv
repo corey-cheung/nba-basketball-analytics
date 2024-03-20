@@ -1,8 +1,6 @@
 game_date,home_team,home_team_score,visitor_team_score,visitor_team,season,status,home_team_win
-2024-03-17,MIL,140,129,PHX,2023,Final,True
-2024-03-17,DAL,107,105,DEN,2023,Final,True
-2024-03-17,ORL,111,96,TOR,2023,Final,True
-2024-03-17,WAS,104,130,BOS,2023,Final,False
-2024-03-17,SAS,122,115,BKN,2023,Final,True
-2024-03-17,LAC,93,110,ATL,2023,Final,False
-2024-03-17,DET,101,104,MIA,2023,Final,False
+2024-03-19,BKN,91,104,NOP,2023,Final,False
+2024-03-19,SAS,107,113,DAL,2023,Final,False
+2024-03-19,ORL,112,92,CHA,2023,Final,True
+2024-03-19,WAS,114,137,HOU,2023,Final,False
+2024-03-19,MIN,112,115,DEN,2023,Final,False
